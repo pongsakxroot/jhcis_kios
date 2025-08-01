@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เลือกบริการ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin: 20px auto;
+            max-width: 700px;
+        }
+        
+        .service-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .service-icon {
+            color: #667eea;
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .patient-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .claim-option {
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .claim-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .claim-option.selected {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+        
+        .claim-option input[type="radio"] {
+            margin-right: 15px;
+            transform: scale(1.2);
+        }
+        
+        .claim-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .claim-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .btn-confirm {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            color: white;
+            width: 100%;
+            margin-top: 30px;
+        }
+        
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        .btn-confirm:disabled {
+            background: #6c757d;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .spinner-border {
+            display: none;
+        }
+        
+        .loading .spinner-border {
+            display: inline-block;
+        }
+        
+        .alert {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="service-card">
+            <div class="service-header">
+                <i class="fas fa-stethoscope service-icon"></i>
+                <h2>เลือกบริการ</h2>
+                <p class="text-muted">กรุณาเลือกประเภทบริการที่ต้องการใช้</p>
+            </div>
+            
+            {% if data %}
+            <!-- Patient Summary -->
+            <div class="patient-summary">
+                <h5><i class="fas fa-user me-2"></i>ข้อมูลผู้ป่วย</h5>
+                <p class="mb-1"><strong>{{ data.fname }} {{ data.lname }}</strong></p>
+                <p class="mb-1">เลขบัตรประชาชน: {{ data.pid }}</p>
+                {% if data.mainInscl %}
+                <p class="mb-0">สิทธิ์: {{ data.mainInscl }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Service Selection Form -->
+            <form id="serviceForm" method="POST" action="/confirm-service">
+                {% if claim_types and claim_types|length > 0 %}
+                <div class="service-options">
+                    <h5 class="mb-3">เลือกประเภทบริการ:</h5>
+                    
+                    {% for claim in claim_types %}
+                    <div class="claim-option" onclick="selectClaim('{{ claim.claimType }}')">
+                        <input type="radio" 
+                               name="claim_type" 
+                               value="{{ claim.claimType }}" 
+                               id="claim_{{ loop.index }}">
+                        <label for="claim_{{ loop.index }}" class="w-100" style="cursor: pointer;">
+                            <div class="claim-title">{{ claim.claimType }}</div>
+                            <div class="claim-description">{{ claim.claimTypeName }}</div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ไม่พบประเภทบริการที่สามารถใช้ได้
+                </div>
+                {% endif %}
+                
+                {% if claim_types and claim_types|length > 0 %}
+                <button type="submit" id="confirmBtn" class="btn btn-confirm" disabled>
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <i class="fas fa-check me-2"></i>
+                    <span id="confirmText">ยืนยันการใช้บริการ</span>
+                </button>
+                {% endif %}
+                
+                <div id="alertContainer"></div>
+            </form>
+            
+            <div class="text-center">
+                <a href="/patient-info" class="btn-back">
+                    <i class="fas fa-arrow-left me-2"></i>กลับ
+                </a>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ไม่พบข้อมูลผู้ป่วย กรุณาอ่านบัตรใหม่
+            </div>
+            <div class="text-center">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>กลับหน้าแรก
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const confirmBtn = document.getElementById('confirmBtn');
+        const confirmText = document.getElementById('confirmText');
+        const alertContainer = document.getElementById('alertContainer');
+        const serviceForm = document.getElementById('serviceForm');
+        
+        function selectClaim(claimType) {
+            // Remove previous selections
+            document.querySelectorAll('.claim-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Select the clicked option
+            const selectedOption = event.currentTarget;
+            selectedOption.classList.add('selected');
+            
+            // Check the radio button
+            const radio = selectedOption.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            // Enable the confirm button
+            confirmBtn.disabled = false;
+        }
+        
+        serviceForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const selectedClaim = document.querySelector('input[name="claim_type"]:checked');
+            if (!selectedClaim) {
+                showAlert('กรุณาเลือกประเภทบริการ', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            confirmBtn.classList.add('loading');
+            confirmText.textContent = 'กำลังดำเนินการ...';
+            confirmBtn.disabled = true;
+            
+            // Clear previous alerts
+            alertContainer.innerHTML = '';
+            
+            try {
+                const formData = new FormData(serviceForm);
+                const response = await fetch('/confirm-service', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Success - show message and redirect
+                    showAlert(`ลงทะเบียนสำเร็จ! Visit No: ${data.visitno}`, 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/success';
+                    }, 2000);
+                } else {
+                    // Show error
+                    showAlert(data.error || 'เกิดข้อผิดพลาดในการลงทะเบียน', 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('ไม่สามารถเชื่อมต่อกับระบบได้', 'danger');
+            } finally {
+                // Reset button state
+                confirmBtn.classList.remove('loading');
+                confirmText.textContent = 'ยืนยันการใช้บริการ';
+                confirmBtn.disabled = false;
+            }
+        });
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
