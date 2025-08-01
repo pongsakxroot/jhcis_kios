@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตั้งค่าฐานข้อมูล</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .settings-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+        .settings-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .settings-icon {
+            color: #667eea;
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-test {
+            background: #17a2b8;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            margin-right: 10px;
+        }
+        
+        .btn-test:hover {
+            background: #138496;
+            color: white;
+        }
+        
+        .btn-save {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        .btn-back {
+            background: #6c757d;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        .btn-back:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .alert {
+            margin-top: 20px;
+        }
+        
+        .spinner-border {
+            display: none;
+        }
+        
+        .loading .spinner-border {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="settings-card">
+            <div class="settings-header">
+                <i class="fas fa-database settings-icon"></i>
+                <h2>ตั้งค่าฐานข้อมูล</h2>
+                <p class="text-muted">กำหนดการเชื่อมต่อฐานข้อมูล JHCIS</p>
+            </div>
+            
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="host" class="form-label">Host:</label>
+                    <input type="text" class="form-control" id="host" name="host" 
+                           value="{{ config.host }}" placeholder="localhost" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="port" class="form-label">Port:</label>
+                    <input type="number" class="form-control" id="port" name="port" 
+                           value="{{ config.port }}" placeholder="3306" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="user" class="form-label">Username:</label>
+                    <input type="text" class="form-control" id="user" name="user" 
+                           value="{{ config.user }}" placeholder="root" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password:</label>
+                    <input type="password" class="form-control" id="password" name="password" 
+                           value="{{ config.password }}" placeholder="รหัสผ่าน">
+                    <small class="text-muted">เว้นว่างหากไม่มีรหัสผ่าน</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="database" class="form-label">Database:</label>
+                    <input type="text" class="form-control" id="database" name="database" 
+                           value="{{ config.database }}" placeholder="jhcis" required>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="button" id="testBtn" class="btn btn-test">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <i class="fas fa-plug me-2"></i>
+                        <span id="testText">ทดสอบการเชื่อมต่อ</span>
+                    </button>
+                </div>
+                
+                <button type="submit" id="saveBtn" class="btn btn-save">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <i class="fas fa-save me-2"></i>
+                    <span id="saveText">บันทึกการตั้งค่า</span>
+                </button>
+                
+                <div id="alertContainer"></div>
+            </form>
+            
+            <div class="text-center">
+                <a href="/" class="btn-back">
+                    <i class="fas fa-arrow-left me-2"></i>กลับหน้าแรก
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const testBtn = document.getElementById('testBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const testText = document.getElementById('testText');
+        const saveText = document.getElementById('saveText');
+        const alertContainer = document.getElementById('alertContainer');
+        const settingsForm = document.getElementById('settingsForm');
+        
+        // Test connection
+        testBtn.addEventListener('click', async function() {
+            testBtn.classList.add('loading');
+            testText.textContent = 'กำลังทดสอบ...';
+            testBtn.disabled = true;
+            
+            alertContainer.innerHTML = '';
+            
+            try {
+                const formData = new FormData(settingsForm);
+                const response = await fetch('/test-connection', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('ไม่สามารถทดสอบการเชื่อมต่อได้', 'danger');
+            } finally {
+                testBtn.classList.remove('loading');
+                testText.textContent = 'ทดสอบการเชื่อมต่อ';
+                testBtn.disabled = false;
+            }
+        });
+        
+        // Save settings
+        settingsForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            saveBtn.classList.add('loading');
+            saveText.textContent = 'กำลังบันทึก...';
+            saveBtn.disabled = true;
+            
+            alertContainer.innerHTML = '';
+            
+            try {
+                const formData = new FormData(settingsForm);
+                const response = await fetch('/save-settings', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    
+                    // Redirect to home after successful save
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showAlert(data.message, 'danger');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('ไม่สามารถบันทึกการตั้งค่าได้', 'danger');
+            } finally {
+                saveBtn.classList.remove('loading');
+                saveText.textContent = 'บันทึกการตั้งค่า';
+                saveBtn.disabled = false;
+            }
+        });
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alertDiv);
+        }
+        
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
