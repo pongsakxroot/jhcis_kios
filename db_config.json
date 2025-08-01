@@ -1,0 +1,7 @@
+{
+  "host": "192.168.9.101",
+  "user": "admin",
+  "password": "suntisuk",
+  "database": "jhcisdb",
+  "port": 3306
+}
